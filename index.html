@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>AutoExpert AI - Elite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #00f2ff;
+            --carbon: #111111;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1a1a2e, #050505);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Interface Chat Wow */
+        .app-container {
+            width: 450px;
+            height: 700px;
+            background: var(--carbon);
+            border: 2px solid #222;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 255, 0.15);
+        }
+
+        header {
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--neon);
+            text-shadow: 0 0 10px var(--neon);
+            letter-spacing: 3px;
+        }
+
+        /* Zone de messages */
+        #chat-flow {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: none;
+        }
+
+        .bubble {
+            padding: 15px 20px;
+            border-radius: 20px;
+            max-width: 80%;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: pop 0.4s ease-out;
+        }
+
+        .bot {
+            background: var(--glass);
+            border: 1px solid #444;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .user {
+            background: linear-gradient(135deg, var(--neon), #0066ff);
+            color: black;
+            font-weight: 600;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Input futuriste */
+        .input-box {
+            padding: 25px;
+            background: #1a1a1a;
+            display: flex;
+            gap: 10px;
+            border-radius: 0 0 30px 30px;
+        }
+
+        input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #333;
+            padding: 15px;
+            color: white;
+            border-radius: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--neon); }
+
+        button {
+            background: var(--neon);
+            border: none;
+            padding: 0 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--neon); }
+
+        @keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header><h1>AUTO-GPT EXPERT</h1></header>
+    <div id="chat-flow">
+        <div class="bubble bot">Systèmes prêts. Posez-moi une question sur n'importe quel moteur ou marque.</div>
+    </div>
+    <div class="input-box">
+        <input type="text" id="query" placeholder="Ex: Pourquoi mon moteur claque ?" autocomplete="off">
+        <button id="btn">SEND</button>
+    </div>
+</div>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+    // --- REMPLACEZ PAR VOTRE CLÉ API GOOGLE ---
+    const API_KEY = "VOTRE_CLE_API_ICI"; 
+    
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const flow = document.getElementById('chat-flow');
+    const input = document.getElementById('query');
+    const btn = document.getElementById('btn');
+
+    async function chat() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Message User
+        addMsg(text, 'user');
+        input.value = "";
+
+        // Message de chargement
+        const loading = addMsg("Analyse mécanique en cours...", "bot");
+
+        try {
+            // Requête à l'IA
+            const prompt = `Tu es un expert automobile mondial. Réponds précisément à : ${text}`;
+            const result = await model.generateContent(prompt);
+            loading.innerText = result.response.text();
+        } catch (e) {
+            loading.innerText = "Erreur : Clé API invalide ou absente. Connectez Gemini pour activer l'intelligence.";
+            console.error(e);
+        }
+    }
+
+    function addMsg(text, type) {
+        const div = document.createElement('div');
+        div.className = `bubble ${type}`;
+        div.innerText = text;
+        flow.appendChild(div);
+        flow.scrollTop = flow.scrollHeight;
+        return div;
+    }
+
+    btn.onclick = chat;
+    input.onkeypress = (e) => { if(e.key === 'Enter') chat(); };
+</script>
+
+</body>
+</html>
